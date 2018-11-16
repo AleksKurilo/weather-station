@@ -25,11 +25,15 @@ repositories {
 
 
 dependencies {
+	compile project(':weather-station-library')
+	
+	compile ('mysql:mysql-connector-java')
 	compile ('com.typesafe.akka:akka-actor_2.12:2.5.3')
 	compile("org.springframework.boot:spring-boot-starter-data-rest")
 	compile('org.springframework.boot:spring-boot-starter-data-jpa')
-	compile ('mysql:mysql-connector-java')
-	compile('org.springframework.boot:spring-boot-starter-web')
 	compileOnly('org.projectlombok:lombok')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
+
+	compile group: 'com.typesafe.akka', name: 'akka-cluster_2.12', version: '2.5.3'
+	compile group: 'com.typesafe.akka', name: 'akka-cluster-metrics_2.12', version: '2.5.3'
 }

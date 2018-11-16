@@ -1,16 +1,20 @@
 package com.akurilo.weatherstation.actor_system.actor;
 
 import akka.actor.AbstractActor;
-import com.akurilo.weatherstation.dto.BasetEntityDto;
+import com.akurilo.weatherstation.entity.BaseEntity;
 import com.akurilo.weatherstation.service.ApplicationContextService;
 import com.akurilo.weatherstation.service.Service;
+import enums.RequestType;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
-public abstract class BaseServiceActor<T extends Service, V extends BasetEntityDto> extends AbstractActor {
+public abstract class BaseServiceActor<T extends Service, V extends BaseEntity> extends AbstractActor {
 
     private final Class<T> type;
     private T service = null;
@@ -26,27 +30,31 @@ public abstract class BaseServiceActor<T extends Service, V extends BasetEntityD
         this.service = ApplicationContextService.getApplicationContext().getBean(type);
     }
 
-    public List<V> actions(V message) {
-        switch (message.getRequestType()) {
+    public List<V> actions(V entity, RequestType requestType) {
+        switch (requestType) {
             case POST:
-                List<V> resultPost = new ArrayList<>();
-                resultPost.add((V) service.create(message));
-                return resultPost;
+                List<V> responsePost = new ArrayList<>();
+                Optional<V> savedEntity = service.create(entity);
+                savedEntity.ifPresent(o -> responsePost.add(savedEntity.get()));
+                return responsePost;
             case PUT:
-                List<V> resultPut = new ArrayList<>();
-                resultPut.add((V) service.update(message));
-                return resultPut;
+                List<V> responsePut = new ArrayList<>();
+                Optional<V> updatedEntity = service.update(entity);
+                updatedEntity.ifPresent(o -> responsePut.add(updatedEntity.get()));
+                return responsePut;
             case GET:
-                List<V> resultGet = new ArrayList<>();
-                resultGet.add((V) service.getById(message.getId()));
-                return resultGet;
+                List<V> responseGet = new ArrayList<>();
+                Optional<V> gotEntity = service.getById(entity.getId());
+                gotEntity.ifPresent(o -> responseGet.add(gotEntity.get()));
+                return responseGet;
             case GET_LIST:
-                List<V> resultGetList = (List<V>) service.getList();
-                return resultGetList;
+                Stream<V> gotListEntity = service.getList();
+                return gotListEntity.collect(Collectors.toList());
             case DELETE:
-                List<V> resultDel = new ArrayList<>();
-                resultDel.add((V) service.delete(message.getId()));
-                return resultDel;
+                List<V> responseDel = new ArrayList<>();
+                Optional<V> deletedEntity = service.delete(entity.getId());
+                deletedEntity.ifPresent(o -> responseDel.add(deletedEntity.get()));
+                return responseDel;
             default:
                 return null;
         }

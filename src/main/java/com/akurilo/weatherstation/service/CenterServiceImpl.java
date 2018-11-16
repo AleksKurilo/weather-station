@@ -1,51 +1,52 @@
 package com.akurilo.weatherstation.service;
 
-import com.akurilo.weatherstation.dto.CenterDto;
-import com.akurilo.weatherstation.enums.RequestType;
+import com.akurilo.weatherstation.entity.CenterEntity;
+import com.akurilo.weatherstation.repository.CenterRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class CenterServiceImpl extends BaseService<CenterDto> implements CenterService {
+@RequiredArgsConstructor
+public class CenterServiceImpl implements CenterService {
 
+    private final CenterRepository centerRepository;
 
     @Override
-    public CenterDto create(CenterDto entity) {
-        CenterDto centerDto = new CenterDto();
-        centerDto.setMessage("was created");
-        return centerDto;
+    @Transactional
+    public Optional<CenterEntity> create(CenterEntity entity) {
+        return Optional.of(centerRepository.save(entity));
     }
 
     @Override
-    public CenterDto update(CenterDto entity) {
-        CenterDto centerDto = new CenterDto();
-        centerDto.setMessage("was update");
-        return centerDto;
+    @Transactional
+    public Optional<CenterEntity> update(CenterEntity entity) {
+        return Optional.of(centerRepository.save(entity));
     }
 
     @Override
-    public CenterDto getById(long id) {
-        CenterDto centerDto = new CenterDto();
-        centerDto.setMessage("get by id: " + id);
-        return centerDto;
+    @Transactional(readOnly = true)
+    public Optional<CenterEntity> getById(long id) {
+        return centerRepository.findById(id);
     }
 
     @Override
-    public List<CenterDto> getList() {
-        CenterDto centerDto = new CenterDto();
-        centerDto.setMessage("answer from service");
-        centerDto.setRequestType(RequestType.GET_LIST);
-        return new ArrayList<>(Arrays.asList(centerDto));
+    @Transactional(readOnly = true)
+    public Stream<CenterEntity> getList() {
+        return StreamSupport.stream(centerRepository.findAll().spliterator(), false);
     }
 
     @Override
-    public CenterDto delete(long id) {
-        return null;
+    @Transactional
+    public Optional<CenterEntity> delete(long id) {
+        centerRepository.deleteById(id);
+        return Optional.of(new CenterEntity());
     }
 }
