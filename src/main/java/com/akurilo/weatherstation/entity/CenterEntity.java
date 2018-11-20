@@ -14,9 +14,6 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode
 public class CenterEntity extends BaseEntity {
 
-
-    //private Long id;
-
     @Basic
     @Column(name = "name")
     @Max(value = 255)

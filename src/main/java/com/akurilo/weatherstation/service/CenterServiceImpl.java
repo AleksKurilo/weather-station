@@ -46,7 +46,8 @@ public class CenterServiceImpl implements CenterService {
     @Override
     @Transactional
     public Optional<CenterEntity> delete(long id) {
-        centerRepository.deleteById(id);
-        return Optional.of(new CenterEntity());
+        Optional<CenterEntity> center = centerRepository.findById(id);
+        center.ifPresent(centerEntity -> centerRepository.deleteById(id));
+        return center;
     }
 }
