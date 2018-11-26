@@ -7,15 +7,20 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.akurilo.weatherstation.actor_system.MasterActor;
 import com.akurilo.weatherstation.entity.CenterEntity;
+import com.akurilo.weatherstation.mapper.CenterMapper;
+import com.akurilo.weatherstation.service.CenterService;
 import com.akurilo.weatherstation.service.CenterServiceImpl;
 import dto.CenterDto;
+import org.modelmapper.ModelMapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
-public class CenterServiceActor extends BaseServiceActor<CenterServiceImpl, CenterEntity> {
+public class CenterServiceActor extends BaseServiceActor<CenterService, CenterEntity> {
 
+    private final CenterMapper mapper = new CenterMapper();
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     public static Props props() {
@@ -23,7 +28,7 @@ public class CenterServiceActor extends BaseServiceActor<CenterServiceImpl, Cent
     }
 
     @Override
-    public AbstractActor.Receive createReceive() {
+    public Receive createReceive() {
         return receiveBuilder()
                 .match(CenterDto.class, this::sendCenterDto)
                 .build();
@@ -31,24 +36,10 @@ public class CenterServiceActor extends BaseServiceActor<CenterServiceImpl, Cent
 
     private void sendCenterDto(CenterDto centerDto) {
         try {
-
-            //TODO add mapper to entity
-            CenterEntity centerEntity = new CenterEntity();
-            centerEntity.setId(centerDto.getId());
-            centerEntity.setName(centerDto.getName());
-            centerEntity.setCoordinates(centerDto.getCoordinates());
-
+            CenterEntity centerEntity = mapper.toEntity(centerDto);
             List<CenterEntity> entities = actions(centerEntity, centerDto.getRequestType());
-
-            //TODO mapper from entity
-            List<CenterDto> centerDtos = new ArrayList<>();
-            entities.stream().forEach(e -> {
-                CenterDto centerDto1 = new CenterDto();
-                centerDto1.setId(e.getId());
-                centerDto1.setName(e.getName());
-                centerDto1.setCoordinates(e.getCoordinates());
-                centerDtos.add(centerDto1);
-            });
+            List<CenterDto> centerDtos =  entities.stream()
+                    .map(e -> mapper.fromEntity(e)).collect(Collectors.toList());
 
             getSender().tell(centerDtos, ActorRef.noSender());
             log.info("Send message: {} to {}.class", centerDto.toString(), MasterActor.class.getSimpleName());

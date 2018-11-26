@@ -1,14 +1,19 @@
 package com.akurilo.weatherstation.service;
 
 import com.akurilo.weatherstation.entity.CenterEntity;
+import com.akurilo.weatherstation.entity.LocationEntity;
 import com.akurilo.weatherstation.repository.CenterRepository;
+import com.akurilo.weatherstation.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -18,6 +23,7 @@ import java.util.stream.StreamSupport;
 public class CenterServiceImpl implements CenterService {
 
     private final CenterRepository centerRepository;
+    private final LocationRepository locationRepository;
 
     @Override
     @Transactional
@@ -28,6 +34,15 @@ public class CenterServiceImpl implements CenterService {
     @Override
     @Transactional
     public Optional<CenterEntity> update(CenterEntity entity) {
+        Set<LocationEntity> locations= entity.getLocations().stream()
+                .map(locationEntity -> {
+                    locationEntity = locationRepository.findById(locationEntity.getId()).get();
+                    locationEntity.setCenter(entity);
+                    locationRepository.save(locationEntity);
+                    return locationEntity;
+                })
+                .collect(Collectors.toSet());
+        entity.setLocations(locations);
         return Optional.of(centerRepository.save(entity));
     }
 

@@ -8,8 +8,10 @@ import akka.cluster.ClusterEvent;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.akurilo.weatherstation.actor_system.actor.CenterServiceActor;
+import com.akurilo.weatherstation.actor_system.actor.LocationActor;
 import com.akurilo.weatherstation.actor_system.actor.UserServiceActor;
 import dto.CenterDto;
+import dto.LocationDto;
 import dto.UserDto;
 
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +40,7 @@ public class MasterActor extends AbstractActor {
         return receiveBuilder()
                 .match(CenterDto.class, this::sendCenterDto)
                 .match(UserDto.class, this::sentUserDto)
+                .match(LocationDto.class, this::sendLocationDto)
                 .build();
     }
 
@@ -59,6 +62,18 @@ public class MasterActor extends AbstractActor {
             CompletableFuture<Object> future = ask(childActor, userDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
             pipe(future, getContext().dispatcher()).to(sender());
             log.info("Send message: {} to {}.class", userDto.toString(), UserServiceActor.class.getSimpleName());
+        } catch (Exception e) {
+            getSender().tell(new akka.actor.Status.Failure(e), getSelf());
+            log.error("Error message: ", e);
+        }
+    }
+
+    private void sendLocationDto(LocationDto locationDto) {
+        try {
+            final ActorRef childActor = ACTOR_SYSTEM.actorOf(LocationActor.props());
+            CompletableFuture<Object> future = ask(childActor, locationDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
+            pipe(future, getContext().dispatcher()).to(sender());
+            log.info("Send message: {} to {}.class", locationDto.toString(), UserServiceActor.class.getSimpleName());
         } catch (Exception e) {
             getSender().tell(new akka.actor.Status.Failure(e), getSelf());
             log.error("Error message: ", e);

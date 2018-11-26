@@ -3,20 +3,22 @@ package com.akurilo.weatherstation.entity;
 import enums.WindDirection;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "center", schema = "weather_station", catalog = "")
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"locations"})
+@ToString(exclude = {"locations"})
 public class CenterEntity extends BaseEntity {
 
     @Basic
     @Column(name = "name")
-    @Max(value = 255)
     private String name;
 
     @Basic
@@ -44,4 +46,7 @@ public class CenterEntity extends BaseEntity {
     @Column(name = "coordinates")
     @NotNull
     private String coordinates;
+
+    @OneToMany(mappedBy = "center")
+    private Set<LocationEntity> locations;
 }
