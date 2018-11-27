@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -22,6 +23,14 @@ public class LocationEntity  extends BaseEntity{
     @Column(name = "coordinates")
     private String coordinates;
 
-    @OneToMany(mappedBy = "location")
+    @OneToMany(mappedBy = "location", fetch = FetchType.EAGER)
     private Set<StationEntity> stations;
+
+    @ManyToMany
+    @JoinTable(
+            name = "location_center",
+            joinColumns = {@JoinColumn(name = "location_id")},
+            inverseJoinColumns = {@JoinColumn(name = "center_id")}
+    )
+    Set<CenterEntity> centers = new HashSet<>();
 }

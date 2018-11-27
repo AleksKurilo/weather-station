@@ -7,13 +7,11 @@ import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import com.akurilo.weatherstation.actor_system.actor.CenterActor;
 import com.akurilo.weatherstation.actor_system.actor.LocationActor;
 import com.akurilo.weatherstation.actor_system.actor.StationServiceActor;
 import com.akurilo.weatherstation.actor_system.actor.UserServiceActor;
-import dto.AuthRequestDto;
-import dto.LocationDto;
-import dto.StationDto;
-import dto.UserDto;
+import dto.*;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -43,6 +41,7 @@ public class MasterActor extends AbstractActor {
                 .match(UserDto.class, this::sentUserDto)
                 .match(LocationDto.class, this::sendLocationDto)
                 .match(StationDto.class, this::sendStationDto)
+                .match(CenterDto.class, this::sendCenterDto)
                 .build();
     }
 
@@ -82,13 +81,24 @@ public class MasterActor extends AbstractActor {
         }
     }
 
-
     private void sendLocationDto(LocationDto locationDto) {
         try {
             final ActorRef childActor = ACTOR_SYSTEM.actorOf(LocationActor.props());
             CompletableFuture<Object> future = ask(childActor, locationDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
             pipe(future, getContext().dispatcher()).to(sender());
             log.info("Send message: {} to {}.class", locationDto.toString(), UserServiceActor.class.getSimpleName());
+        } catch (Exception e) {
+            getSender().tell(new akka.actor.Status.Failure(e), getSelf());
+            log.error("Error message: ", e);
+        }
+    }
+
+    private void sendCenterDto(CenterDto centerDto) {
+        try {
+            final ActorRef childActor = ACTOR_SYSTEM.actorOf(CenterActor.props());
+            CompletableFuture<Object> future = ask(childActor, centerDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
+            pipe(future, getContext().dispatcher()).to(sender());
+            log.info("Send message: {} to {}.class", centerDto.toString(), UserServiceActor.class.getSimpleName());
         } catch (Exception e) {
             getSender().tell(new akka.actor.Status.Failure(e), getSelf());
             log.error("Error message: ", e);

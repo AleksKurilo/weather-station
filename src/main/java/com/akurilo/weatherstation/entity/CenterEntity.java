@@ -1,46 +1,27 @@
 package com.akurilo.weatherstation.entity;
 
-import javax.persistence.*;
-import java.util.Objects;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-@Entity
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+@Data
+@Entity(name = "center")
 @Table(name = "center", schema = "weather_station", catalog = "")
-public class CenterEntity {
-    private Long id;
+@EqualsAndHashCode(exclude = {"locations"}, callSuper = true)
+@ToString(exclude = {"locations"})
+public class CenterEntity extends BaseEntity {
+
     private String name;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    @Basic
-    @Column(name = "name")
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CenterEntity that = (CenterEntity) o;
-        return id == that.id &&
-                Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name);
-    }
+    @ManyToMany
+    @JoinTable(
+            name = "location_center",
+            joinColumns = {@JoinColumn(name = "center_id")},
+            inverseJoinColumns = {@JoinColumn(name = "location_id")}
+    )
+    private Set<LocationEntity> locations = new HashSet<>();
 }
