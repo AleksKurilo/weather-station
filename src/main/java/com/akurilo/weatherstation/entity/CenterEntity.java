@@ -1,52 +1,46 @@
 package com.akurilo.weatherstation.entity;
 
-import enums.WindDirection;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.NotNull;
-import java.util.Set;
+import java.util.Objects;
 
-@Data
 @Entity
 @Table(name = "center", schema = "weather_station", catalog = "")
-@EqualsAndHashCode(exclude = {"locations"})
-@ToString(exclude = {"locations"})
-public class CenterEntity extends BaseEntity {
+public class CenterEntity {
+    private Long id;
+    private String name;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     @Basic
     @Column(name = "name")
-    private String name;
+    public String getName() {
+        return name;
+    }
 
-    @Basic
-    @Column(name = "temperatureC")
-    private Double temperatureC;
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    @Basic
-    @Column(name = "humidity")
-    private Double humidity;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CenterEntity that = (CenterEntity) o;
+        return id == that.id &&
+                Objects.equals(name, that.name);
+    }
 
-    @Basic
-    @Column(name = "pressure")
-    private Integer pressure;
-
-    @Basic
-    @Column(name = "wind_speed")
-    private Double windSpeed;
-
-    @Basic
-    @Column(name = "wind_direction")
-    @Enumerated(EnumType.STRING)
-    private WindDirection windDirection;
-
-    @Basic
-    @Column(name = "coordinates")
-    @NotNull
-    private String coordinates;
-
-    @OneToMany(mappedBy = "center")
-    private Set<LocationEntity> locations;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
+    }
 }

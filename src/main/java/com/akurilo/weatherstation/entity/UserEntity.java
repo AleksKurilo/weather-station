@@ -15,6 +15,10 @@ import java.util.Date;
 public class UserEntity extends BaseEntity {
 
     @Basic
+    @Column(name = "password")
+    private String password;
+
+    @Basic
     @Column(name = "email")
     private String email;
 

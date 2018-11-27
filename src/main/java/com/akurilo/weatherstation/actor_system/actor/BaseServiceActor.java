@@ -5,6 +5,7 @@ import com.akurilo.weatherstation.entity.BaseEntity;
 import com.akurilo.weatherstation.service.ApplicationContextService;
 import com.akurilo.weatherstation.service.Service;
 import enums.RequestType;
+import lombok.Getter;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 public abstract class BaseServiceActor<T extends Service, V extends BaseEntity> extends AbstractActor {
 
     private final Class<T> type;
+    @Getter
     private T service = null;
 
     @SuppressWarnings("unchecked")

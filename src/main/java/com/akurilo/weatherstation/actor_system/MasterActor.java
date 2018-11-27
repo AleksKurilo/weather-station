@@ -7,11 +7,12 @@ import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.akurilo.weatherstation.actor_system.actor.CenterServiceActor;
 import com.akurilo.weatherstation.actor_system.actor.LocationActor;
+import com.akurilo.weatherstation.actor_system.actor.StationServiceActor;
 import com.akurilo.weatherstation.actor_system.actor.UserServiceActor;
-import dto.CenterDto;
+import dto.AuthRequestDto;
 import dto.LocationDto;
+import dto.StationDto;
 import dto.UserDto;
 
 import java.util.concurrent.CompletableFuture;
@@ -38,18 +39,19 @@ public class MasterActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(CenterDto.class, this::sendCenterDto)
+                .match(AuthRequestDto.class, this::getUserByEmail)
                 .match(UserDto.class, this::sentUserDto)
                 .match(LocationDto.class, this::sendLocationDto)
+                .match(StationDto.class, this::sendStationDto)
                 .build();
     }
 
-    private void sendCenterDto(CenterDto centerDto) {
+    private void getUserByEmail(AuthRequestDto authRequestDto) {
         try {
-            final ActorRef childActor = ACTOR_SYSTEM.actorOf(CenterServiceActor.props());
-            CompletableFuture<Object> future = ask(childActor, centerDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
+            final ActorRef childActor = ACTOR_SYSTEM.actorOf(UserServiceActor.props());
+            CompletableFuture<Object> future = ask(childActor, authRequestDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
             pipe(future, getContext().dispatcher()).to(sender());
-            log.info("Send message: {} to {}.class", centerDto.toString(), CenterServiceActor.class.getSimpleName());
+            log.info("Send message: {} to {}.class", authRequestDto.toString(), StationServiceActor.class.getSimpleName());
         } catch (Exception e) {
             getSender().tell(new akka.actor.Status.Failure(e), getSelf());
             log.error("Error message: ", e);
@@ -67,6 +69,19 @@ public class MasterActor extends AbstractActor {
             log.error("Error message: ", e);
         }
     }
+
+    private void sendStationDto(StationDto stationDto) {
+        try {
+            final ActorRef childActor = ACTOR_SYSTEM.actorOf(StationServiceActor.props());
+            CompletableFuture<Object> future = ask(childActor, stationDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
+            pipe(future, getContext().dispatcher()).to(sender());
+            log.info("Send message: {} to {}.class", stationDto.toString(), StationServiceActor.class.getSimpleName());
+        } catch (Exception e) {
+            getSender().tell(new akka.actor.Status.Failure(e), getSelf());
+            log.error("Error message: ", e);
+        }
+    }
+
 
     private void sendLocationDto(LocationDto locationDto) {
         try {

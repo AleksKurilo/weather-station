@@ -1,46 +1,52 @@
 package com.akurilo.weatherstation.entity;
 
-import javax.persistence.*;
-import java.util.Objects;
+import enums.WindDirection;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+
+
+@Data
 @Entity
 @Table(name = "station", schema = "weather_station", catalog = "")
-public class StationEntity {
-    private Long id;
-    private String name;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public class StationEntity extends BaseEntity {
 
     @Basic
     @Column(name = "name")
-    public String getName() {
-        return name;
-    }
+    private String name;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    @Basic
+    @Column(name = "temperatureC")
+    private Double temperatureC;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        StationEntity that = (StationEntity) o;
-        return id == that.id &&
-                Objects.equals(name, that.name);
-    }
+    @Basic
+    @Column(name = "humidity")
+    private Double humidity;
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name);
-    }
+    @Basic
+    @Column(name = "pressure")
+    private Integer pressure;
+
+    @Basic
+    @Column(name = "wind_speed")
+    private Double windSpeed;
+
+    @Basic
+    @Column(name = "wind_direction")
+    @Enumerated(EnumType.STRING)
+    private WindDirection windDirection;
+
+    @Basic
+    @Column(name = "coordinates")
+    @NotNull
+    private String coordinates;
+
+    @ManyToOne
+    @JoinColumn(name = "location_id", nullable = true)
+    private LocationEntity location;
 }

@@ -1,6 +1,5 @@
 package com.akurilo.weatherstation.repository;
 
-import com.akurilo.weatherstation.entity.CenterEntity;
 import com.akurilo.weatherstation.entity.LocationEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

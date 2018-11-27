@@ -50,4 +50,9 @@ public class UserServiceImpl implements UserService {
         user.ifPresent(userEntity -> userRepository.deleteById(id));
         return user;
     }
+
+    @Override
+    public Optional<UserEntity> getByEmail(String email) {
+        return Optional.of(userRepository.findByEmail(email));
+    }
 }

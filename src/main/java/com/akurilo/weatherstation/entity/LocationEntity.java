@@ -2,14 +2,16 @@ package com.akurilo.weatherstation.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.Objects;
+import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "location", schema = "weather_station", catalog = "")
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"stations"}, callSuper = true)
+@ToString(exclude = {"stations"})
 public class LocationEntity  extends BaseEntity{
 
     @Basic
@@ -20,7 +22,6 @@ public class LocationEntity  extends BaseEntity{
     @Column(name = "coordinates")
     private String coordinates;
 
-    @ManyToOne
-    @JoinColumn(name = "center_id", nullable = true)
-    private CenterEntity center;
+    @OneToMany(mappedBy = "location")
+    private Set<StationEntity> stations;
 }

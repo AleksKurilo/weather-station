@@ -8,10 +8,11 @@ import com.akurilo.weatherstation.actor_system.MasterActor;
 import com.akurilo.weatherstation.entity.UserEntity;
 import com.akurilo.weatherstation.mapper.UserMapper;
 import com.akurilo.weatherstation.service.UserService;
-import com.akurilo.weatherstation.service.UserServiceImpl;
+import dto.AuthRequestDto;
 import dto.UserDto;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UserServiceActor extends BaseServiceActor<UserService, UserEntity> {
@@ -26,8 +27,32 @@ public class UserServiceActor extends BaseServiceActor<UserService, UserEntity> 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+                .match(AuthRequestDto.class, this::getUserByEmail)
                 .match(UserDto.class, this::sendUserDto)
                 .build();
+    }
+
+    private void getUserByEmail(AuthRequestDto authRequestDto) {
+        UserService userService = getService();
+        Optional<UserEntity> userEntity = userService.getByEmail(authRequestDto.getEmail());
+//        userEntity.orElseGet( ()->{
+//            getSender().tell("user does not exist", ActorRef.noSender());
+//            return null;
+//        });
+
+        userEntity.ifPresent(entity -> {
+
+            //TODO add mapper to entity
+            UserDto userDto = new UserDto();
+            userDto.setId(entity.getId());
+            userDto.setEmail(entity.getEmail());
+            userDto.setPassword(entity.getPassword());
+            userDto.setRole(entity.getRole().getText());
+            userDto.setCreateOn(entity.getCreateOn());
+            userDto.setLastUpdate(entity.getLastUpdate());
+
+            getSender().tell(userDto, ActorRef.noSender());
+        });
     }
 
     private void sendUserDto(UserDto userDto) {
