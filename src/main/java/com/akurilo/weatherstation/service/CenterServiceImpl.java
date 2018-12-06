@@ -44,7 +44,6 @@ public class CenterServiceImpl implements CenterService {
                     return locationEntity;
                 })
                 .collect(Collectors.toSet());
-        entity.setLocations(locations); //TODO lazy initialization exception turn on EAGER
         return Optional.of(centerRepository.save(entity));
     }
 
@@ -52,14 +51,12 @@ public class CenterServiceImpl implements CenterService {
     @Transactional(readOnly = true)
     public Optional<CenterEntity> getById(long id) {
         Optional<CenterEntity> center = centerRepository.findById(id);
-        center.get().getLocations().size();  //TODO lazy initialization added this method
         return center;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Stream<CenterEntity> getList() {
-        centerRepository.findAll().forEach(entity -> entity.getLocations().size()); //TODO lazy initialization added this method
         return StreamSupport.stream(centerRepository.findAll().spliterator(), false);
     }
 

@@ -35,12 +35,12 @@ public class StationServiceActor extends BaseServiceActor<StationService, Statio
             StationEntity stationEntity = mapper.toEntity(stationDto);
             List<StationEntity> entities = actions(stationEntity, stationDto.getRequestType());
             List<StationDto> stationDtos = entities.stream()
-                    .map(e -> mapper.fromEntity(e)).collect(Collectors.toList());
+                    .map(mapper::fromEntity).collect(Collectors.toList());
 
             getSender().tell(stationDtos, ActorRef.noSender());
             log.info("Send message: {} to {}.class", stationDto.toString(), MasterActor.class.getSimpleName());
         } catch (Exception e) {
-            getSender().tell(new akka.actor.Status.Failure(e), getSelf());
+            getSender().tell(new akka.actor.Status.Failure(e), ActorRef.noSender());
             log.error("Error message: {}", e.getMessage());
         }
     }

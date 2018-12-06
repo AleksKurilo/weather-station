@@ -3,6 +3,7 @@ package com.akurilo.weatherstation.service;
 import com.akurilo.weatherstation.entity.StationEntity;
 import com.akurilo.weatherstation.repository.LocationRepository;
 import com.akurilo.weatherstation.repository.StationRepository;
+import exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -30,12 +31,16 @@ public class StationServiceImpl implements StationService {
     @Override
     @Transactional
     public Optional<StationEntity> update(StationEntity entity) {
+        stationRepository.findById(entity.getId())
+                .orElseThrow(() -> new NotFoundException(entity.getId(), StationEntity.class));
         return Optional.of(stationRepository.save(entity));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<StationEntity> getById(long id) {
+        stationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(id, StationEntity.class));
         return stationRepository.findById(id);
     }
 
@@ -48,8 +53,9 @@ public class StationServiceImpl implements StationService {
     @Override
     @Transactional
     public Optional<StationEntity> delete(long id) {
-        Optional<StationEntity> station = stationRepository.findById(id);
-        station.ifPresent(stationEntity -> stationRepository.deleteById(id));
-        return station;
+        StationEntity station = stationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(id, StationEntity.class));
+        stationRepository.delete(station);
+        return Optional.of(station);
     }
 }

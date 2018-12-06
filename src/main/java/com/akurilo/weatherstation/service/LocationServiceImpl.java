@@ -4,6 +4,7 @@ import com.akurilo.weatherstation.entity.LocationEntity;
 import com.akurilo.weatherstation.entity.StationEntity;
 import com.akurilo.weatherstation.repository.LocationRepository;
 import com.akurilo.weatherstation.repository.StationRepository;
+import exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,8 @@ public class LocationServiceImpl implements LocationService {
     public Optional<LocationEntity> update(LocationEntity entity) {
         Set<StationEntity> stations = entity.getStations().stream()
                 .map(stationEntity -> {
-                    stationEntity = stationRepository.findById(stationEntity.getId()).get();
+                    stationEntity = stationRepository.findById(stationEntity.getId())
+                            .orElseThrow(() -> new NotFoundException(entity.getId(), LocationEntity.class));
                     stationEntity.setLocation(entity);
                     stationRepository.save(stationEntity);
                     return stationEntity;
@@ -57,8 +59,9 @@ public class LocationServiceImpl implements LocationService {
     @Override
     @Transactional
     public Optional<LocationEntity> delete(long id) {
-        Optional<LocationEntity> location = locationRepository.findById(id);
-        location.ifPresent(locationEntity -> locationRepository.deleteById(id));
-        return location;
+        LocationEntity location = locationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(id, LocationEntity.class));
+        locationRepository.delete(location);
+        return Optional.of(location);
     }
 }

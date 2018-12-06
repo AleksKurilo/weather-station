@@ -16,34 +16,27 @@ import javax.validation.constraints.NotNull;
 @ToString
 public class StationEntity extends BaseEntity {
 
-    @Basic
     @Column(name = "name")
     private String name;
 
-    @Basic
     @Column(name = "temperatureC")
     private Double temperatureC;
 
-    @Basic
     @Column(name = "humidity")
     private Double humidity;
 
-    @Basic
     @Column(name = "pressure")
     private Integer pressure;
 
-    @Basic
     @Column(name = "wind_speed")
     private Double windSpeed;
 
-    @Basic
     @Column(name = "wind_direction")
     @Enumerated(EnumType.STRING)
     private WindDirection windDirection;
 
-    @Basic
-    @Column(name = "coordinates")
     @NotNull
+    @Column(name = "coordinates")
     private String coordinates;
 
     @ManyToOne

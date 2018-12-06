@@ -35,22 +35,9 @@ public class UserServiceActor extends BaseServiceActor<UserService, UserEntity> 
     private void getUserByEmail(AuthRequestDto authRequestDto) {
         UserService userService = getService();
         Optional<UserEntity> userEntity = userService.getByEmail(authRequestDto.getEmail());
-//        userEntity.orElseGet( ()->{
-//            getSender().tell("user does not exist", ActorRef.noSender());
-//            return null;
-//        });
 
         userEntity.ifPresent(entity -> {
-
-            //TODO add mapper to entity
-            UserDto userDto = new UserDto();
-            userDto.setId(entity.getId());
-            userDto.setEmail(entity.getEmail());
-            userDto.setPassword(entity.getPassword());
-            userDto.setRole(entity.getRole().getText());
-            userDto.setCreateOn(entity.getCreateOn());
-            userDto.setLastUpdate(entity.getLastUpdate());
-
+            UserDto userDto = mapper.fromEntity(entity);
             getSender().tell(userDto, ActorRef.noSender());
         });
     }
@@ -60,7 +47,12 @@ public class UserServiceActor extends BaseServiceActor<UserService, UserEntity> 
             UserEntity userEntity = mapper.toEntity(userDto);
             List<UserEntity> entities = actions(userEntity, userDto.getRequestType());
             List<UserDto> userDtos = entities.stream()
-                    .map(e -> mapper.fromEntity(e)).collect(Collectors.toList());
+                    .map(e -> {
+                        UserDto dto = mapper.fromEntity(e);
+                        dto.setPassword("");
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
 
             getSender().tell(userDtos, ActorRef.noSender());
             log.info("Send message: {} to {}.class", userDto.toString(), MasterActor.class.getSimpleName());

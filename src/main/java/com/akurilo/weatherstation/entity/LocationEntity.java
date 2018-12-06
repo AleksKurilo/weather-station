@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,11 +16,10 @@ import java.util.Set;
 @ToString(exclude = {"stations"})
 public class LocationEntity  extends BaseEntity{
 
-    @Basic
     @Column(name = "name")
     private String name;
 
-    @Basic
+    @NotNull
     @Column(name = "coordinates")
     private String coordinates;
 

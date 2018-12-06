@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -14,24 +16,22 @@ import java.util.Date;
 @EqualsAndHashCode
 public class UserEntity extends BaseEntity {
 
-    @Basic
-    @Column(name = "password")
-    private String password;
-
-    @Basic
+    @Email
+    @NotNull
     @Column(name = "email")
     private String email;
 
-    @Basic
+    @NotNull
+    @Column(name = "password")
+    private String password;
+
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @Basic
     @Column(name = "create_on")
     private Timestamp createOn;
 
-    @Basic
     @Column(name = "last_update")
     private Timestamp lastUpdate;
 

@@ -17,7 +17,7 @@ public class CenterEntity extends BaseEntity {
 
     private String name;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "location_center",
             joinColumns = {@JoinColumn(name = "center_id")},
