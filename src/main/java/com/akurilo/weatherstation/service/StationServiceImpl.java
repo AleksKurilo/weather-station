@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -24,24 +23,23 @@ public class StationServiceImpl implements StationService {
 
     @Override
     @Transactional
-    public Optional<StationEntity> create(StationEntity entity) {
-        return Optional.of(stationRepository.save(entity));
+    public StationEntity create(StationEntity entity) {
+        return stationRepository.save(entity);
     }
 
     @Override
     @Transactional
-    public Optional<StationEntity> update(StationEntity entity) {
+    public StationEntity update(StationEntity entity) {
         stationRepository.findById(entity.getId())
                 .orElseThrow(() -> new NotFoundException(entity.getId(), StationEntity.class));
-        return Optional.of(stationRepository.save(entity));
+        return stationRepository.save(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<StationEntity> getById(long id) {
-        stationRepository.findById(id)
+    public StationEntity getById(long id) {
+        return stationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(id, StationEntity.class));
-        return stationRepository.findById(id);
     }
 
     @Override
@@ -52,10 +50,10 @@ public class StationServiceImpl implements StationService {
 
     @Override
     @Transactional
-    public Optional<StationEntity> delete(long id) {
+    public StationEntity delete(long id) {
         StationEntity station = stationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(id, StationEntity.class));
         stationRepository.delete(station);
-        return Optional.of(station);
+        return station;
     }
 }

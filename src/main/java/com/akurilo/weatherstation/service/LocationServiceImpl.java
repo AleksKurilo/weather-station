@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,13 +23,13 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     @Transactional
-    public Optional<LocationEntity> create(LocationEntity entity) {
-        return Optional.of(locationRepository.save(entity));
+    public LocationEntity create(LocationEntity entity) {
+        return locationRepository.save(entity);
     }
 
     @Override
     @Transactional
-    public Optional<LocationEntity> update(LocationEntity entity) {
+    public LocationEntity update(LocationEntity entity) {
         Set<StationEntity> stations = entity.getStations().stream()
                 .map(stationEntity -> {
                     stationEntity = stationRepository.findById(stationEntity.getId())
@@ -41,13 +40,14 @@ public class LocationServiceImpl implements LocationService {
                 })
                 .collect(Collectors.toSet());
         entity.setStations(stations);
-        return Optional.of(locationRepository.save(entity));
+        return locationRepository.save(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<LocationEntity> getById(long id) {
-        return locationRepository.findById(id);
+    public LocationEntity getById(long id) {
+        return locationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(id, LocationEntity.class));
     }
 
     @Override
@@ -58,10 +58,10 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     @Transactional
-    public Optional<LocationEntity> delete(long id) {
+    public LocationEntity delete(long id) {
         LocationEntity location = locationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(id, LocationEntity.class));
         locationRepository.delete(location);
-        return Optional.of(location);
+        return location;
     }
 }

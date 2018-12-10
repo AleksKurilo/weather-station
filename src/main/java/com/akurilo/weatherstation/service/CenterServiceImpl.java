@@ -4,11 +4,11 @@ import com.akurilo.weatherstation.entity.CenterEntity;
 import com.akurilo.weatherstation.entity.LocationEntity;
 import com.akurilo.weatherstation.repository.CenterRepository;
 import com.akurilo.weatherstation.repository.LocationRepository;
+import exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,7 +23,7 @@ public class CenterServiceImpl implements CenterService {
 
     @Override
     @Transactional
-    public Optional<CenterEntity> create(CenterEntity entity) {
+    public CenterEntity create(CenterEntity entity) {
         Set<LocationEntity> locations = entity.getLocations().stream()
                 .map(locationNew -> {
                     locationRepository.save(locationNew);
@@ -31,27 +31,30 @@ public class CenterServiceImpl implements CenterService {
                 })
                 .collect(Collectors.toSet());
         entity.setLocations(locations);
-        return Optional.of(centerRepository.save(entity));
+        return centerRepository.save(entity);
     }
 
     @Override
     @Transactional
-    public Optional<CenterEntity> update(CenterEntity entity) {
-        Set<LocationEntity> locations = entity.getLocations().stream()
+    public CenterEntity update(CenterEntity entity) {
+        Set<LocationEntity> locations = entity.getLocations()
+                .stream()
                 .map(locationEntity -> {
-                    locationEntity = locationRepository.findById(locationEntity.getId()).get();
+                    final long locationId = locationEntity.getId();
+                    locationEntity = locationRepository.findById(locationId)
+                            .orElseThrow(() -> new NotFoundException(locationId, LocationEntity.class));
                     locationRepository.save(locationEntity);
                     return locationEntity;
                 })
                 .collect(Collectors.toSet());
-        return Optional.of(centerRepository.save(entity));
+        return centerRepository.save(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<CenterEntity> getById(long id) {
-        Optional<CenterEntity> center = centerRepository.findById(id);
-        return center;
+    public CenterEntity getById(long id) {
+        return centerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(id, CenterEntity.class));
     }
 
     @Override
@@ -62,9 +65,10 @@ public class CenterServiceImpl implements CenterService {
 
     @Override
     @Transactional
-    public Optional<CenterEntity> delete(long id) {
-        Optional<CenterEntity> center = centerRepository.findById(id);
-        center.ifPresent(locationEntity -> centerRepository.deleteById(id));
+    public CenterEntity delete(long id) {
+        CenterEntity center = centerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(id, CenterEntity.class));
+        centerRepository.delete(center);
         return center;
     }
 }

@@ -4,6 +4,7 @@ import com.akurilo.weatherstation.entity.StationEntity;
 import com.akurilo.weatherstation.entity.UserEntity;
 import com.akurilo.weatherstation.repository.UserRepository;
 import exception.NotFoundException;
+import exception.NotUniqueException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -19,28 +20,37 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private final static String NOT_UNIQUE_EMAIL = "email";
     private final UserRepository userRepository;
 
     @Override
     @Transactional
-    public Optional<UserEntity> create(UserEntity entity) {
-        return Optional.of(userRepository.save(entity));
+    public UserEntity create(UserEntity entity) {
+        if (userRepository.findByEmail(entity.getEmail()).isPresent()) {
+            throw new NotUniqueException(NOT_UNIQUE_EMAIL);
+        }
+        return userRepository.save(entity);
     }
 
     @Override
     @Transactional
-    public Optional<UserEntity> update(UserEntity entity) {
-        userRepository.findById(entity.getId())
+    public UserEntity update(UserEntity entity) {
+        UserEntity existUser = userRepository.findById(entity.getId())
                 .orElseThrow(() -> new NotFoundException(entity.getId(), UserEntity.class));
-        return Optional.of(userRepository.save(entity));
+
+        boolean isNewEmailExist = userRepository.findByEmail(entity.getEmail()).isPresent();
+        boolean isEmailEquals = existUser.getEmail().equals(entity.getEmail());
+        if (!isEmailEquals && isNewEmailExist) {
+            throw new NotUniqueException(NOT_UNIQUE_EMAIL);
+        }
+        return userRepository.save(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<UserEntity> getById(long id) {
-        userRepository.findById(id)
+    public UserEntity getById(long id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(id, UserEntity.class));
-        return userRepository.findById(id);
     }
 
     @Override
@@ -51,15 +61,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<UserEntity> delete(long id) {
+    public UserEntity delete(long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(id, StationEntity.class));
         userRepository.delete(user);
-        return Optional.of(user);
+        return user;
     }
 
     @Override
     public Optional<UserEntity> getByEmail(String email) {
-        return Optional.of(userRepository.findByEmail(email));
+        return userRepository.findByEmail(email);
     }
 }
