@@ -32,7 +32,7 @@ public class LocationActor extends BaseServiceActor<LocationService, LocationEnt
     private void sendLocationDto(LocationDto locationDto){
         try {
             LocationEntity locationEntity = mapper.toEntity(locationDto);
-            List<LocationEntity> entities = actions(locationEntity, locationDto.getRequestType());
+            List<LocationEntity> entities = executeRestRequest(locationEntity, locationDto.getRequestType());
             List<LocationDto> locationDtos =  entities.stream()
                     .map(e -> mapper.fromEntity(e)).collect(Collectors.toList());
 

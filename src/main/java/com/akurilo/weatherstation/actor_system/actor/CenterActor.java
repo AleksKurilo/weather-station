@@ -32,7 +32,7 @@ public class CenterActor extends BaseServiceActor<CenterService, CenterEntity> {
     private void sendCenterDto(CenterDto centerDto) {
         try {
             CenterEntity centerEntity = mapper.toEntity(centerDto);
-            List<CenterEntity> entities = actions(centerEntity, centerDto.getRequestType());
+            List<CenterEntity> entities = executeRestRequest(centerEntity, centerDto.getRequestType());
             List<CenterDto> centerDtos = entities.stream()
                     .map(e -> mapper.fromEntity(e)).collect(Collectors.toList());
 

@@ -33,7 +33,7 @@ public class StationServiceActor extends BaseServiceActor<StationService, Statio
     private void sendStationDto(StationDto stationDto) {
         try {
             StationEntity stationEntity = mapper.toEntity(stationDto);
-            List<StationEntity> entities = actions(stationEntity, stationDto.getRequestType());
+            List<StationEntity> entities = executeRestRequest(stationEntity, stationDto.getRequestType());
             List<StationDto> stationDtos = entities.stream()
                     .map(mapper::fromEntity).collect(Collectors.toList());
 

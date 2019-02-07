@@ -37,7 +37,7 @@ public class CenterServiceImpl implements CenterService {
     @Override
     @Transactional
     public CenterEntity update(CenterEntity entity) {
-        Set<LocationEntity> locations = entity.getLocations()
+        entity.getLocations()
                 .stream()
                 .map(locationEntity -> {
                     final long locationId = locationEntity.getId();

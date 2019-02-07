@@ -45,7 +45,7 @@ public class UserServiceActor extends BaseServiceActor<UserService, UserEntity> 
     private void sendUserDto(UserDto userDto) {
         try {
             UserEntity userEntity = mapper.toEntity(userDto);
-            List<UserEntity> entities = actions(userEntity, userDto.getRequestType());
+            List<UserEntity> entities = executeRestRequest(userEntity, userDto.getRequestType());
             List<UserDto> userDtos = entities.stream()
                     .map(e -> {
                         UserDto dto = mapper.fromEntity(e);

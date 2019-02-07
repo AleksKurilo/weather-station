@@ -36,8 +36,8 @@ public class StationEntity extends BaseEntity {
     private WindDirection windDirection;
 
     @NotNull
-    @Column(name = "coordinates")
-    private String coordinates;
+    @Column(name = "coordinate")
+    private String coordinate;
 
     @ManyToOne
     @JoinColumn(name = "location_id", nullable = true)

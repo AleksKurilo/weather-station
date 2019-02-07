@@ -7,10 +7,7 @@ import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.akurilo.weatherstation.actor_system.actor.CenterActor;
-import com.akurilo.weatherstation.actor_system.actor.LocationActor;
-import com.akurilo.weatherstation.actor_system.actor.StationServiceActor;
-import com.akurilo.weatherstation.actor_system.actor.UserServiceActor;
+import com.akurilo.weatherstation.actor_system.actor.*;
 import dto.*;
 
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +29,9 @@ public class MasterActor extends AbstractActor {
     @Override
     public void preStart() {
         cluster.subscribe(self(), ClusterEvent.MemberUp.class);
+        ActorRef scheduleActor = ACTOR_SYSTEM.actorOf(ScheduleActor.props());
+        //TODO refactoring ScheduleActor.class
+        scheduleActor.tell("Do Scheduled Work", ActorRef.noSender());
     }
 
     @Override

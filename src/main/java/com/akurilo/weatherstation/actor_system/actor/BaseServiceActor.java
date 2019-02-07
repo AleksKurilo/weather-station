@@ -31,7 +31,7 @@ public abstract class BaseServiceActor<T extends Service, V extends BaseEntity> 
         this.service = ApplicationContextService.getApplicationContext().getBean(type);
     }
 
-    public List<V> actions(V entity, RequestType requestType) {
+    public List<V> executeRestRequest(V entity, RequestType requestType) {
         List<V> response = new ArrayList<>();
         switch (requestType) {
             case POST:
