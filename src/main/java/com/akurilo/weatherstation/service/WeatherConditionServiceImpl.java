@@ -3,7 +3,6 @@ package com.akurilo.weatherstation.service;
 
 import dto.StationDto;
 import enums.WindDirection;
-import exception.OpenWeatherMapApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -13,6 +12,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+//import exception.OpenWeatherMapApiException;
 
 @Component
 @RequiredArgsConstructor
@@ -34,8 +35,10 @@ public class WeatherConditionServiceImpl implements WeatherConditionSevice {
             stationDto.setWindDirection(extractWindDirection(response.getBody()));
             return stationDto;
         } else {
-            throw new OpenWeatherMapApiException(response.getStatusCodeValue());
+            //TODO add exception
+            //throw new OpenWeatherMapApiException(response.getStatusCodeValue());
         }
+        return null;
     }
 
     private ResponseEntity<String> getRequestToWeatherApi(String lat, String lon) {

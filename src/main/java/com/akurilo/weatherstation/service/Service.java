@@ -1,19 +1,20 @@
 package com.akurilo.weatherstation.service;
 
 import com.akurilo.weatherstation.entity.BaseEntity;
+import dto.BaseEntityDto;
 
-import java.util.stream.Stream;
+import java.util.List;
 
-public interface Service<T extends BaseEntity> {
+public interface Service<T extends BaseEntity, V extends BaseEntityDto> {
 
-    T create(T entity);
+    V create(T entity);
 
-    T update(T entity);
+    V update(T entity);
 
-    T getById(long id);
+    V getById(long id);
 
-    Stream<T> getList();
+    List<V> getList();
 
-    T delete(long id);
+    V delete(long id);
 
 }

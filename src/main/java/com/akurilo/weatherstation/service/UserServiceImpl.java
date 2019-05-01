@@ -1,8 +1,9 @@
 package com.akurilo.weatherstation.service;
 
-import com.akurilo.weatherstation.entity.StationEntity;
 import com.akurilo.weatherstation.entity.UserEntity;
+import com.akurilo.weatherstation.mapper.UserMapper;
 import com.akurilo.weatherstation.repository.UserRepository;
+import dto.UserDto;
 import exception.NotFoundException;
 import exception.NotUniqueException;
 import lombok.RequiredArgsConstructor;
@@ -11,30 +12,33 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final static String NOT_UNIQUE_EMAIL = "email";
+    private static final String NOT_UNIQUE_EMAIL = "email";
+
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
-    public UserEntity create(UserEntity entity) {
+    public UserDto create(UserEntity entity) {
         if (userRepository.findByEmail(entity.getEmail()).isPresent()) {
             throw new NotUniqueException(NOT_UNIQUE_EMAIL);
         }
-        return userRepository.save(entity);
+        UserEntity entitySaved = userRepository.save(entity);
+        return userMapper.fromEntity(entitySaved);
     }
 
     @Override
     @Transactional
-    public UserEntity update(UserEntity entity) {
+    public UserDto update(UserEntity entity) {
         UserEntity existUser = userRepository.findById(entity.getId())
                 .orElseThrow(() -> new NotFoundException(entity.getId(), UserEntity.class));
 
@@ -43,29 +47,36 @@ public class UserServiceImpl implements UserService {
         if (!isEmailEquals && isNewEmailExist) {
             throw new NotUniqueException(NOT_UNIQUE_EMAIL);
         }
-        return userRepository.save(entity);
+        UserEntity entitySaved = userRepository.save(entity);
+        return userMapper.fromEntity(entitySaved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserEntity getById(long id) {
+    public UserDto getById(long id) {
         return userRepository.findById(id)
+                .map(userMapper::fromEntity)
                 .orElseThrow(() -> new NotFoundException(id, UserEntity.class));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Stream<UserEntity> getList() {
-        return StreamSupport.stream(userRepository.findAll().spliterator(), false);
+    public List<UserDto> getList() {
+        List<UserDto> userDtos = new ArrayList<>();
+        userRepository.findAll().forEach(userEntity -> {
+            UserDto userDto = userMapper.fromEntity(userEntity);
+            userDtos.add(userDto);
+        });
+        return userDtos;
     }
 
     @Override
     @Transactional
-    public UserEntity delete(long id) {
+    public UserDto delete(long id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(id, StationEntity.class));
+                .orElseThrow(() -> new NotFoundException(id, UserEntity.class));
         userRepository.delete(user);
-        return user;
+        return userMapper.fromEntity(user);
     }
 
     @Override

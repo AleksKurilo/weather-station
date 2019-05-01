@@ -32,12 +32,14 @@ public class CenterActor extends BaseServiceActor<CenterService, CenterEntity> {
     private void sendCenterDto(CenterDto centerDto) {
         try {
             CenterEntity centerEntity = mapper.toEntity(centerDto);
-            List<CenterEntity> entities = executeRestRequest(centerEntity, centerDto.getRequestType());
-            List<CenterDto> centerDtos = entities.stream()
-                    .map(e -> mapper.fromEntity(e)).collect(Collectors.toList());
+            List<CenterDto> centerDtos = executeRestRequest(centerEntity, centerDto.getRequestType())
+                    .stream()
+                    .map(baseEntityDto -> (CenterDto) baseEntityDto)
+                    .collect(Collectors.toList());
 
             getSender().tell(centerDtos, ActorRef.noSender());
             log.info("Send message: {} to {}.class", centerDtos.toString(), MasterActor.class.getSimpleName());
+
         } catch (Exception e) {
             getSender().tell(new akka.actor.Status.Failure(e), getSelf());
             log.error("Error message: {}", e.getMessage());

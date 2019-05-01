@@ -32,9 +32,10 @@ public class LocationActor extends BaseServiceActor<LocationService, LocationEnt
     private void sendLocationDto(LocationDto locationDto){
         try {
             LocationEntity locationEntity = mapper.toEntity(locationDto);
-            List<LocationEntity> entities = executeRestRequest(locationEntity, locationDto.getRequestType());
-            List<LocationDto> locationDtos =  entities.stream()
-                    .map(e -> mapper.fromEntity(e)).collect(Collectors.toList());
+            List<LocationDto> locationDtos = executeRestRequest(locationEntity, locationDto.getRequestType())
+                    .stream()
+                    .map(baseEntityDto -> (LocationDto) baseEntityDto)
+                    .collect(Collectors.toList());
 
             getSender().tell(locationDtos, ActorRef.noSender());
             log.info("Send message: {} to {}.class", locationDtos.toString(), MasterActor.class.getSimpleName());

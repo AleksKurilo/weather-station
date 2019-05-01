@@ -4,14 +4,13 @@ import akka.actor.AbstractActor;
 import com.akurilo.weatherstation.entity.BaseEntity;
 import com.akurilo.weatherstation.service.ApplicationContextService;
 import com.akurilo.weatherstation.service.Service;
+import dto.BaseEntityDto;
 import enums.RequestType;
 import lombok.Getter;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 public abstract class BaseServiceActor<T extends Service, V extends BaseEntity> extends AbstractActor {
@@ -31,23 +30,22 @@ public abstract class BaseServiceActor<T extends Service, V extends BaseEntity> 
         this.service = ApplicationContextService.getApplicationContext().getBean(type);
     }
 
-    public List<V> executeRestRequest(V entity, RequestType requestType) {
-        List<V> response = new ArrayList<>();
+    public List<BaseEntityDto> executeRestRequest(V entity, RequestType requestType) {
+        List<BaseEntityDto> response = new ArrayList<>();
         switch (requestType) {
             case POST:
-                response.add((V) service.create(entity));
+                response.add(service.create(entity));
                 return response;
             case PUT:
-                response.add((V) service.update(entity));
+                response.add(service.update(entity));
                 return response;
             case GET:
-                response.add((V) service.getById(entity.getId()));
+                response.add(service.getById(entity.getId()));
                 return response;
             case GET_LIST:
-                Stream<V> gotListEntity = service.getList();
-                return gotListEntity.collect(Collectors.toList());
+                return service.getList();
             case DELETE:
-                response.add((V) service.delete(entity.getId()));
+                response.add(service.delete(entity.getId()));
                 return response;
             default:
                 return null;

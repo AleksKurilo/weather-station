@@ -4,9 +4,11 @@ import com.akurilo.weatherstation.entity.LocationEntity;
 import com.akurilo.weatherstation.entity.StationEntity;
 import dto.LocationDto;
 import dto.StationDto;
+import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 
+@Component
 public class LocationMapper extends BaseMapper<LocationEntity, LocationDto> {
 
     @Override

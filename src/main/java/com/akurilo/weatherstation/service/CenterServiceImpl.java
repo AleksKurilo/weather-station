@@ -2,17 +2,19 @@ package com.akurilo.weatherstation.service;
 
 import com.akurilo.weatherstation.entity.CenterEntity;
 import com.akurilo.weatherstation.entity.LocationEntity;
+import com.akurilo.weatherstation.mapper.CenterMapper;
 import com.akurilo.weatherstation.repository.CenterRepository;
 import com.akurilo.weatherstation.repository.LocationRepository;
+import dto.CenterDto;
 import exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -20,23 +22,22 @@ public class CenterServiceImpl implements CenterService {
 
     private final CenterRepository centerRepository;
     private final LocationRepository locationRepository;
+    private final CenterMapper centerMapper;
 
     @Override
     @Transactional
-    public CenterEntity create(CenterEntity entity) {
+    public CenterDto create(CenterEntity entity) {
         Set<LocationEntity> locations = entity.getLocations().stream()
-                .map(locationNew -> {
-                    locationRepository.save(locationNew);
-                    return locationNew;
-                })
+                .map(locationRepository::save)
                 .collect(Collectors.toSet());
         entity.setLocations(locations);
-        return centerRepository.save(entity);
+        entity = centerRepository.save(entity);
+        return centerMapper.fromEntity(entity);
     }
 
     @Override
     @Transactional
-    public CenterEntity update(CenterEntity entity) {
+    public CenterDto update(CenterEntity entity) {
         entity.getLocations()
                 .stream()
                 .map(locationEntity -> {
@@ -47,28 +48,36 @@ public class CenterServiceImpl implements CenterService {
                     return locationEntity;
                 })
                 .collect(Collectors.toSet());
-        return centerRepository.save(entity);
+        entity = centerRepository.save(entity);
+        return centerMapper.fromEntity(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public CenterEntity getById(long id) {
+    public CenterDto getById(long id) {
         return centerRepository.findById(id)
+                .map(centerMapper::fromEntity)
                 .orElseThrow(() -> new NotFoundException(id, CenterEntity.class));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Stream<CenterEntity> getList() {
-        return StreamSupport.stream(centerRepository.findAll().spliterator(), false);
+    public List<CenterDto> getList() {
+        List<CenterDto> centerDtos = new ArrayList<>();
+        centerRepository.findAll()
+                .forEach(centerEntity -> {
+                    CenterDto centerDto = centerMapper.fromEntity(centerEntity);
+                    centerDtos.add(centerDto);
+                });
+        return centerDtos;
     }
 
     @Override
     @Transactional
-    public CenterEntity delete(long id) {
+    public CenterDto delete(long id) {
         CenterEntity center = centerRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(id, CenterEntity.class));
         centerRepository.delete(center);
-        return center;
+        return centerMapper.fromEntity(center);
     }
 }
