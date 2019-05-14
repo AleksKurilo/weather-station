@@ -8,6 +8,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.akurilo.weatherstation.service.WeatherConditionServiceImpl;
 import com.akurilo.weatherstation.service.WeatherConditionSevice;
+import dto.ScheduleManagementDto;
 import dto.StationDto;
 import enums.RequestType;
 import org.springframework.web.client.RestTemplate;
@@ -35,25 +36,29 @@ public class ScheduleActor extends AbstractActor {
 
     @Override
     public void preStart() {
-        cancellable = context().system().scheduler().schedule(
-                FiniteDuration.create(10, TimeUnit.SECONDS),
-                FiniteDuration.create(5, TimeUnit.SECONDS),
-                getSelf(),
-                "Do Scheduled Work",
-                context().dispatcher(),
-                ActorRef.noSender());
+        cancellable = context()
+                .system().scheduler()
+                .schedule(
+                        FiniteDuration.create(10, TimeUnit.SECONDS),
+                        FiniteDuration.create(5, TimeUnit.SECONDS),
+                        getSelf(),
+                        new ScheduleManagementDto(false),
+                        context().dispatcher(),
+                        ActorRef.noSender());
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(String.class, this::getCurrentWeatherCondition)
+                .match(ScheduleManagementDto.class, this::getCurrentWeatherCondition)
                 //TODO change period in schedule
-                //TODO turn of schedule
                 .build();
     }
 
-    private void getCurrentWeatherCondition(String message) {
+    private void getCurrentWeatherCondition(ScheduleManagementDto scheduleManagementDto) {
+        if (scheduleManagementDto.isCancel()) {
+            cancellable.cancel();
+        }
         try {
             if (!cancellable.isCancelled()) {
                 StationDto stationDto = new StationDto();
@@ -62,7 +67,7 @@ public class ScheduleActor extends AbstractActor {
                 CompletableFuture<Object> future = ask(childActor, stationDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
 
                 //TODO bussines logic weatherConditionSevice.getCurrentWeatherCondition()
-                System.out.println("========== Schedule message =========  " + ZonedDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm:ss")));
+                log.info("========== Schedule message =========  " + ZonedDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm:ss")));
             }
         } catch (Exception e) {
             getSender().tell(new akka.actor.Status.Failure(e), getSelf());

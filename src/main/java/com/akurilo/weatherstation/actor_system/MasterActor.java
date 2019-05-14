@@ -32,9 +32,6 @@ public class MasterActor extends AbstractActor {
     @Override
     public void preStart() {
         cluster.subscribe(self(), ClusterEvent.MemberUp.class);
-        //TODO refactoring ScheduleActor.class
-        //ActorRef scheduleActor = ACTOR_SYSTEM.actorOf(ScheduleActor.props());
-        //scheduleActor.tell("Do Scheduled Work", ActorRef.noSender());
     }
 
     @Override
