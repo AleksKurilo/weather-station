@@ -16,6 +16,7 @@ import scala.concurrent.duration.FiniteDuration;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +41,7 @@ public class ScheduleActor extends AbstractActor {
                 .system().scheduler()
                 .schedule(
                         FiniteDuration.create(10, TimeUnit.SECONDS),
-                        FiniteDuration.create(5, TimeUnit.SECONDS),
+                        FiniteDuration.create(20, TimeUnit.SECONDS),
                         getSelf(),
                         new ScheduleManagementDto(false),
                         context().dispatcher(),
@@ -61,13 +62,19 @@ public class ScheduleActor extends AbstractActor {
         }
         try {
             if (!cancellable.isCancelled()) {
+                log.info("=========> Send message to OPEN  WEATHER MAP " + ZonedDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm:ss")));
+
                 StationDto stationDto = new StationDto();
                 stationDto.setRequestType(RequestType.GET_LIST);
                 final ActorRef childActor = ACTOR_SYSTEM.actorOf(StationServiceActor.props());
                 CompletableFuture<Object> future = ask(childActor, stationDto, TIMEOUT_GET_MESSAGE).toCompletableFuture();
-
-                //TODO bussines logic weatherConditionSevice.getCurrentWeatherCondition()
-                log.info("========== Schedule message =========  " + ZonedDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm:ss")));
+                List<StationDto> stations = (List<StationDto>) future.get();
+                //TODO Send list station in one actor message
+                for (StationDto station : stations) {
+                    station = weatherConditionSevice.getCurrentWeatherCondition(station);
+                    station.setRequestType(RequestType.PUT);
+                    childActor.tell(station, ActorRef.noSender());
+                }
             }
         } catch (Exception e) {
             getSender().tell(new akka.actor.Status.Failure(e), getSelf());

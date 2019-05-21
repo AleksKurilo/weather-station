@@ -36,6 +36,10 @@ public class StationServiceImpl implements StationService {
     public StationDto update(StationEntity entity) {
         stationRepository.findById(entity.getId())
                 .orElseThrow(() -> new NotFoundException(entity.getId(), StationEntity.class));
+
+        locationRepository.findById(entity.getLocation().getId())
+                .ifPresent(locationRepository::save);
+
         StationEntity entitySaved = stationRepository.save(entity);
         return stationMapper.fromEntity(entitySaved);
     }

@@ -4,5 +4,5 @@ import dto.StationDto;
 
 public interface WeatherConditionSevice {
 
-    StationDto getCurrentWeatherCondition(String lat, String lon);
+    StationDto getCurrentWeatherCondition(StationDto stationDto);
 }

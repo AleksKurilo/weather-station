@@ -3,31 +3,34 @@ package com.akurilo.weatherstation.service;
 
 import dto.StationDto;
 import enums.WindDirection;
+import exception.OpenWeatherMapApiException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-//import exception.OpenWeatherMapApiException;
 
 @Component
 @RequiredArgsConstructor
 public class WeatherConditionServiceImpl implements WeatherConditionSevice {
 
-    private static final String API_URL_TEMPLATE = "http://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s";
+    private static final String API_URL_TEMPLATE = "http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={appid}";
     private static final String APP_ID = "d847f21e7b4c4d9f7e5938b3c1d7a002";
     private final RestTemplate restTemplate;
 
     @Override
-    public StationDto getCurrentWeatherCondition(String lat, String lon) {
+    public StationDto getCurrentWeatherCondition(StationDto stationDto) {
+        String lat = stationDto.getCoordinate().getLat();
+        String lon = stationDto.getCoordinate().getLon();
         ResponseEntity<String> response = getRequestToWeatherApi(lat, lon);
         if (response.getStatusCode().is2xxSuccessful()) {
-            StationDto stationDto = new StationDto();
             stationDto.setTemperatureC(extractTemperature(response.getBody()));
             stationDto.setHumidity(extractHumidity(response.getBody()));
             stationDto.setPressure(extractPressure(response.getBody()));
@@ -35,16 +38,20 @@ public class WeatherConditionServiceImpl implements WeatherConditionSevice {
             stationDto.setWindDirection(extractWindDirection(response.getBody()));
             return stationDto;
         } else {
-            //TODO add exception
-            //throw new OpenWeatherMapApiException(response.getStatusCodeValue());
+            throw new OpenWeatherMapApiException(response.getStatusCodeValue());
         }
-        return null;
     }
 
     private ResponseEntity<String> getRequestToWeatherApi(String lat, String lon) {
-        String url = String.format(API_URL_TEMPLATE, lat, lon, APP_ID);
-        HttpEntity<String> entity = new HttpEntity<>("");
-        return restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        Map<String, Object> uriParams = new HashMap<>(3);
+        uriParams.put("lat", lat);
+        uriParams.put("lon", lon);
+        uriParams.put("appid", APP_ID);
+
+        URI uri = UriComponentsBuilder.fromUriString(API_URL_TEMPLATE)
+                .buildAndExpand(uriParams)
+                .toUri();
+        return restTemplate.exchange(uri, HttpMethod.GET, null, String.class);
     }
 
     private Double extractTemperature(String responseBody) {
@@ -76,7 +83,7 @@ public class WeatherConditionServiceImpl implements WeatherConditionSevice {
     }
 
     private Double extractWindSpeed(String json) {
-        Pattern pattern = Pattern.compile("(?s).*(\"speed\":(\\d+.\\d+))(.*)");
+        Pattern pattern = Pattern.compile("(?s).*(\"speed\":((\\d+.\\d+)|(\\w)))(.*)");
         Matcher matcher = pattern.matcher(json);
         if (matcher.matches()) {
             return Double.valueOf(matcher.group(2));
@@ -84,6 +91,7 @@ public class WeatherConditionServiceImpl implements WeatherConditionSevice {
         return null;
     }
 
+    // not work now because Openweathermap change response
     private WindDirection extractWindDirection(String json) {
         Pattern pattern = Pattern.compile("(?s).*(\"deg\":(\\d+))(.*)");
         Matcher matcher = pattern.matcher(json);

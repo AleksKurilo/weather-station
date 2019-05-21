@@ -1,6 +1,7 @@
 package com.akurilo.weatherstation;
 
 import com.akurilo.weatherstation.service.WeatherConditionServiceImpl;
+import dto.CoordinateDto;
 import dto.StationDto;
 import enums.WindDirection;
 import exception.OpenWeatherMapApiException;
@@ -11,9 +12,13 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -100,36 +105,51 @@ public class WeatherConditionServiceImplTest {
     public void shouldReturnCurrentWeatherCondition() {
         HttpHeaders headers = new HttpHeaders();
         when(this.restTemplate.exchange(
-                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(URI.class),
                 ArgumentMatchers.any(HttpMethod.class),
-                ArgumentMatchers.any(),
+                ArgumentMatchers.isNull(),
                 ArgumentMatchers.<Class<String>>any())
         )
                 .thenReturn(new ResponseEntity<>(getValidResponse(), headers, HttpStatus.OK));
 
-        StationDto dto = weatherConditionServiceImpl.getCurrentWeatherCondition(LAT_TEST, LON_TEST);
+        CoordinateDto coordinateDto = new CoordinateDto();
+        coordinateDto.setLat(LAT_TEST);
+        coordinateDto.setLon(LON_TEST);
+        StationDto stationDto = new StationDto();
+        stationDto.setCoordinate(coordinateDto);
+
+        StationDto dto = weatherConditionServiceImpl.getCurrentWeatherCondition(stationDto);
         assertThat(dto.getTemperatureC() == 0).isTrue();
         assertThat(dto.getHumidity() == 100).isTrue();
         assertThat(dto.getPressure() == 100).isTrue();
         assertThat(dto.getWindSpeed() == 3.2).isTrue();
         assertThat(dto.getWindDirection().equals(WindDirection.NORTH)).isTrue();
 
-        HttpEntity requestEntity = new HttpEntity("");
-        verify(restTemplate).exchange(URL_TEST, HttpMethod.GET, requestEntity, String.class);
+        verify(restTemplate).exchange(
+                ArgumentMatchers.any(URI.class),
+                ArgumentMatchers.any(HttpMethod.class),
+                ArgumentMatchers.isNull(),
+                ArgumentMatchers.<Class<String>>any());
     }
 
     @Test(expected = OpenWeatherMapApiException.class)
     public void shouldReturnOpenWeatherMapApiException() {
+        StationDto stationDto = new StationDto();
+        CoordinateDto coordinate = new CoordinateDto();
+        coordinate.setLat(LAT_TEST);
+        coordinate.setLon(LON_TEST);
+        stationDto.setCoordinate(coordinate);
+
         HttpHeaders headers = new HttpHeaders();
 
         when(this.restTemplate.exchange(
-                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(URI.class),
                 ArgumentMatchers.any(HttpMethod.class),
-                ArgumentMatchers.any(),
+                ArgumentMatchers.isNull(),
                 ArgumentMatchers.<Class<String>>any())
         )
                 .thenReturn(new ResponseEntity<>(getValidResponse(), headers, HttpStatus.BAD_REQUEST));
 
-        weatherConditionServiceImpl.getCurrentWeatherCondition(LAT_TEST, LON_TEST);
+        weatherConditionServiceImpl.getCurrentWeatherCondition(stationDto);
     }
 }
